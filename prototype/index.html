@@ -6,6 +6,7 @@
 
   <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="codemirror/lib/codemirror.css">
 </head>
 <body>
   <div class="notebook">
@@ -32,7 +33,8 @@ object.on("alert", function(msg) {
   alert("Triggered " + msg);
 });
 
-object.trigger("alert", "an event");</textarea>
+object.trigger("alert", "an event");
+</textarea>
       </div>
 
       <pre class="cell-results"><button class="cell-results-toggle">-</button>Object {
@@ -59,7 +61,7 @@ object.trigger("alert", "an event");</textarea>
         <button><i class="icon-trash icon-white"></i> Delete Cell</button>
       </div>
 
-      <textarea name="" id="" cols="30" rows="10">For example, to make a handy event dispatcher that can coordinate events among different areas of your application: var dispatcher = _.clone(Backbone.Events)</textarea>
+      <textarea cols="30" rows="10">For example, to make a handy event dispatcher that can coordinate events among different areas of your application: var dispatcher = _.clone(Backbone.Events)</textarea>
     </section>
 
     <section class="cell cell-code">
@@ -74,7 +76,7 @@ object.trigger("alert", "an event");</textarea>
         <span class="cell-handle"><i class="icon-move"></i></span>
         <span class="cell-tag">2</span>
 
-        <textarea name="" id="" cols="30" rows="10">var object = {};
+        <textarea cols="30" rows="10">var object = {};
 
 _.extend(object, Backbone.Events);
 
@@ -82,7 +84,8 @@ object.on("alert", function(msg) {
   alert("Triggered " + msg);
 });
 
-object.trigger("alert", "an event");</textarea>
+object.trigger("alert", "an event");
+</textarea>
       </div>
 
       <pre class="cell-results"><button class="cell-results-toggle">+</button>Object {...}</pre>
@@ -92,6 +95,9 @@ object.trigger("alert", "an event");</textarea>
 
 <script src="jquery.min.js"></script>
 <script src="jquery.autosize.js"></script>
+<script src="codemirror/lib/codemirror.js"></script>
+<script src="codemirror/mode/javascript/javascript.js"></script>
+
 <script>
   $('textarea').autosize();
 
@@ -104,6 +110,15 @@ object.trigger("alert", "an event");</textarea>
     var parent = $(this).parents('.cell');
     parent.removeClass('active');
   })
+
+  $('.cell-code textarea').each(function() {
+    CodeMirror.fromTextArea(this, {
+      tabSize: 2,
+      lineNumbers: true,
+      mode: 'javascript'
+    });
+  });
 </script>
+
 </body>
 </html>
