@@ -7,7 +7,7 @@ var loadScript = require('./lib/browser/load-script');
  *
  * @type {Function}
  */
-var App = global.App = require('./views/app');
+var App = window.App = require('./views/app');
 
 // Exposes internally used libraries globally to avoid unneeded requests in
 // third-party middleware and plugins.
@@ -77,11 +77,11 @@ App.Collection = {
  * @param {Function} done
  */
 var prepareState = function (config, done) {
-  if (global === global.parent) {
+  if (window === window.parent) {
     return done(null, config);
   }
 
-  var postMessage = new App.PostMessage(global.parent);
+  var postMessage = new App.PostMessage(window.parent);
 
   // A config object can be passed from the parent frame with configuration
   // options.
@@ -93,12 +93,12 @@ var prepareState = function (config, done) {
   // string.
   postMessage.on('exec', function (evil) {
     /* jshint evil: true */
-    postMessage.trigger('exec', global.eval(evil));
+    postMessage.trigger('exec', window.eval(evil));
   });
 
   // Listen to any resize triggers from the messages object and send the parent
   // frame our updated iframe size.
-  App.state.on('change:window.scrollHeight', function (_, height) {
+  App.state.on('change:documentHeight', function (_, height) {
     postMessage.trigger('height', height);
   });
 
@@ -118,7 +118,7 @@ var prepareState = function (config, done) {
  * the middleware being available.
  *
  * @param {Function|Element} el
- * @param {Object}           config
+ * @param {Object}           [config]
  * @param {Function}         done
  */
 App.start = function (el /*, config */, done) {
@@ -131,14 +131,12 @@ App.start = function (el /*, config */, done) {
 
   return prepareState(config, function (err, config, postMessage) {
     // Load all the injected scripts before starting the app.
-    App.Library.async.each(config.inject || [], function (script, cb) {
-      return loadScript(script, cb);
-    }, function (err) {
-      var app = new App().render().appendTo(el);
-
-      // Set the config object after the app is started since it interacts with
+    App.Library.async.each(config.inject || [], loadScript, function (err) {
+      // Set the config object before the app starts since it interacts with
       // different parts of the application.
       App.config.set(config);
+
+      var app = new App().render().appendTo(el);
 
       // Allows different parts of the application to kickstart requests.
       App.messages.trigger('ready');

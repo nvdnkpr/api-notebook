@@ -83,7 +83,7 @@ describe('Embeddable Widget', function () {
 
   it('should be able to inject scripts before the app initializes', function (done) {
     var notebook = new Notebook(fixture, {
-      inject: ['/test/fixtures/test.js']
+      inject: [FIXTURES_URL + '/test.js']
     });
 
     notebook.on('rendered', function () {

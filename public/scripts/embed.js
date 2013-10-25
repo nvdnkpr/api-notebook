@@ -72,11 +72,10 @@ var defaults = {
  * @type {Object}
  */
 var styles = {
-  border:    'none',
-  display:   'block',
-  padding:   '0',
-  width:     '100%',
-  minHeight: '260px'
+  width:   '100%',
+  border:  'none',
+  display: 'block',
+  padding: '0'
 };
 
 /**
@@ -88,7 +87,9 @@ var styles = {
  * @return {Notebook}
  */
 var Notebook = module.exports = function (el, options) {
-  if (!(this instanceof Notebook)) { return new Notebook(el, options); }
+  if (!(this instanceof Notebook)) {
+    return new Notebook(el, options);
+  }
 
   // Extend default options with passed in options
   this.options = extend({}, defaults, options);
@@ -107,7 +108,9 @@ var Notebook = module.exports = function (el, options) {
 Notebook.prototype.makeFrame = function (el) {
   var that   = this;
   var src    = NOTEBOOK_URL + '/embed.html';
-  var config = {};
+  var config = {
+    referrer: window.location.href
+  };
 
   var frame = this.frame = document.createElement('iframe');
   frame.src = src;
@@ -130,6 +133,11 @@ Notebook.prototype.makeFrame = function (el) {
   // Allow injection of scripts directly into the iframe.
   if (typeof this.options.inject === 'object') {
     config.inject = this.options.inject;
+  }
+
+  // Inject script execution before the app starts.
+  if (typeof this.options.exec === 'string') {
+    config.exec = this.options.exec;
   }
 
   // When the app is ready to receive events, send configuration data and let
@@ -186,8 +194,9 @@ Notebook.prototype.styleFrame = function (style) {
  */
 Notebook.prototype.exec = function (evil, done) {
   this.once('exec', function (result) {
-    return done(result);
+    return done && done(result);
   });
+
   this.trigger('exec', evil);
 };
 

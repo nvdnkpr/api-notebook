@@ -233,9 +233,7 @@ describe('Code Cell', function () {
         });
 
         it('should have a built in script loader', function (done) {
-          // Load our fake testing file since I don't think there is a stub
-          // this test correctly.
-          var code   = 'load("' + NOTEBOOK_URL + '/test/fixtures/test.js");';
+          var code   = 'load("' + FIXTURES_URL + '/test.js");';
 
           view.on('execute', function () {
             expect(view.notebook.sandbox.window.test).to.be.true;

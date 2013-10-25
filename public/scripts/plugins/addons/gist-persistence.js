@@ -1,9 +1,10 @@
 /* global App */
-var _            = App._;
-var CLIENT_ID    = process.env.GITHUB_CLIENT_ID;
-var AUTH_URL     = 'https://github.com/login/oauth/authorize';
-var TOKEN_URL    = 'https://github.com/login/oauth/access_token';
-var VALIDATE_URL = 'https://api.github.com/user';
+var _             = App._;
+var CLIENT_ID     = process.env.GITHUB_CLIENT_ID;
+var CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+var AUTH_URL      = 'https://github.com/login/oauth/authorize';
+var TOKEN_URL     = 'https://github.com/login/oauth/access_token';
+var VALIDATE_URL  = 'https://api.github.com/user';
 
 /**
  * Generate a custom store for the Github token.
@@ -63,7 +64,7 @@ var authenticatePlugin = function (data, next, done) {
   App.middleware.trigger('authenticate:oauth2', {
     scopes:              ['gist'],
     clientId:            CLIENT_ID,
-    clientSecret:        '', // Injected by proxy
+    clientSecret:        CLIENT_SECRET,
     accessTokenUrl:      TOKEN_URL,
     authorizationUrl:    AUTH_URL,
     authorizationGrants: 'code'

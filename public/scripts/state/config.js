@@ -37,10 +37,11 @@ config.listenTo(config, 'change:referrer', (function () {
  * @param  {Function} done
  */
 middleware.use('persistence:load', function (data, next, done) {
-  if (config.get('content')) {
-    data.notebook = config.get('content');
+  if (config.has('content')) {
+    data.contents = config.get('content');
     return done();
   }
+
   return next();
 });
 
@@ -69,4 +70,19 @@ config.listenTo(config, 'change:alias', function (model, alias) {
 config.listenTo(config, 'change:id', function (_, id) {
   persistence.set('id', id);
   return persistence.load();
+});
+
+/**
+ * Listens for content changes and cause a new persistence load.
+ */
+config.listenTo(config, 'change:content', function () {
+  return persistence.load();
+});
+
+/**
+ * Listens for execution content and eval it.
+ */
+config.listenTo(config, 'change:exec', function (_, evil) {
+  /* jshint evil: true */
+  window.eval(evil);
 });

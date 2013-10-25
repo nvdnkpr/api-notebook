@@ -234,7 +234,7 @@ App.prototype.updateState = function () {
     statusEl.appendChild(saveEl);
     statusEl.appendChild(document.createTextNode('.'));
   } else if (state === persistence.SAVE_DONE) {
-    statusEl.textContent = 'Saved ' + stamp + '.';
+    statusEl.textContent = persistence.isNew() ? '' : 'Saved ' + stamp + '.';
   }
 
   return this;

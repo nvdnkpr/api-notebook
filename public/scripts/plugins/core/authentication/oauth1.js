@@ -5,7 +5,7 @@ var url         = require('url');
 var crypto      = require('crypto');
 var authWindow  = require('./lib/auth-window');
 var redirectUri = url.resolve(
-  global.location.href, '/authentication/oauth1.html'
+  global.location.href, 'authentication/oauth1.html'
 );
 
 var appUrlEncoded = 'application/x-www-form-urlencoded';

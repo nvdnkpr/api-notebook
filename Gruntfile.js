@@ -1,17 +1,33 @@
 var DEV         = process.env.NODE_ENV !== 'production';
 var PLUGIN_DIR  = __dirname + '/public/scripts/plugins/addons';
 var BUILD_DIR   = __dirname + '/build';
-var DEPLOY_DIR  = __dirname + '/deploy';
-var TESTS_DIR   = __dirname + '/build/test';
-var FIXTURE_DIR = TESTS_DIR + '/fixtures';
-var TEST_PORT   = 9876;
-var jsRegex     = /\.js$/;
+var TEST_DIR    = BUILD_DIR + '/test';
+var FIXTURE_DIR = TEST_DIR  + '/fixtures';
+var PORT        = process.env.PORT      || 3000;
+var TEST_PORT   = process.env.TEST_PORT || 9876;
+
+var serverMiddleware = function (connect, options) {
+  var middleware = [];
+
+  // Enables cross-domain requests.
+  middleware.push(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin',  '*');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With');
+    return next();
+  });
+
+  // Serve the regular static directory.
+  middleware.push(connect.static(options.base));
+
+  return middleware;
+};
 
 module.exports = function (grunt) {
   require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
 
+  var jsRegex             = /\.js$/;
   var browserifyPlugins   = {};
-  var browserifyTransform = ['envify', 'brfs'];
+  var browserifyTransform = ['envify'];
 
   if (!DEV) {
     browserifyTransform.push('uglifyify');
@@ -35,8 +51,7 @@ module.exports = function (grunt) {
 
   grunt.initConfig({
     clean: {
-      build: BUILD_DIR,
-      deploy: DEPLOY_DIR
+      build: BUILD_DIR
     },
 
     copy: {
@@ -48,7 +63,12 @@ module.exports = function (grunt) {
             src: ['*.html', 'raml/*.yml', 'authentication/**', 'images/**'],
             dest: 'build/'
           },
-          { src: 'public/test.js', dest: FIXTURE_DIR + '/test.js' },
+          {
+            expand: true,
+            cwd: 'test/fixtures',
+            src: '**',
+            dest: FIXTURE_DIR
+          },
           {
             expand: true,
             cwd: 'public/fontello/font',
@@ -56,34 +76,20 @@ module.exports = function (grunt) {
             dest: 'build/font'
           }
         ]
-      },
-      deploy: {
-        files: [
-          { src: '{build,routes}/**/*', dest: 'deploy/' },
-          { src: '{app.js,Procfile,package.json}', dest: 'deploy/' },
-          {
-            src: 'node_modules/{raml-parser,raml-examples}/**/*',
-            dest: DEPLOY_DIR + '/'
-          }
-        ]
       }
     },
 
     connect: {
+      server: {
+        options: {
+          middleware: serverMiddleware,
+          port: PORT,
+          base: BUILD_DIR
+        }
+      },
       'test-server': {
         options: {
-          middleware: function (connect, options) {
-            var middlewares = [];
-            // Enables cross-domain requests.
-            middlewares.push(function (req, res, next) {
-              res.setHeader('Access-Control-Allow-Origin',  '*');
-              res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With');
-              return next();
-            });
-            // Serve the regular static directory.
-            middlewares.push(connect.static(options.base));
-            return middlewares;
-          },
+          middleware: serverMiddleware,
           port: TEST_PORT,
           base: BUILD_DIR
         }
@@ -101,41 +107,7 @@ module.exports = function (grunt) {
 
     shell: {
       'mocha-browser': {
-        command: './node_modules/.bin/mocha-phantomjs test/browser/index.html',
-        options: {
-          stdout: true,
-          stderr: true,
-          failOnError: true
-        }
-      },
-      'mocha-server': {
-        command: './node_modules/.bin/mocha test/server/spec',
-        options: {
-          stdout: true,
-          stderr: true,
-          failOnError: true
-        }
-      },
-      'build-heroku': {
-        command: [
-          'NODE_ENV="production" NOTEBOOK_URL=$DEPLOY_NOTEBOOK_URL ' +
-            'GITHUB_CLIENT_ID=$DEPLOY_GITHUB_CLIENT_ID grunt build'
-        ].join('; '),
-        options: {
-          stdout: true,
-          stderr: true,
-          failOnError: true
-        }
-      },
-      'deploy-heroku': {
-        command: [
-          'HEROKU_ENDPOINT=`git config --get remote.heroku.url`',
-          'cd deploy',
-          'git init .',
-          'git add . > /dev/null',
-          'git commit -m "Deploy" > /dev/null',
-          'git push $HEROKU_ENDPOINT master:master -f'
-        ].join(' && '),
+        command: './node_modules/.bin/mocha-phantomjs test/index.html',
         options: {
           stdout: true,
           stderr: true,
@@ -163,8 +135,8 @@ module.exports = function (grunt) {
         }
       },
       test: {
-        src: 'test/browser/common.js',
-        dest: TESTS_DIR + '/browser/common.js',
+        src: ['test/scripts/common.js', 'test/scripts/helpers.js'],
+        dest: TEST_DIR + '/scripts/bundle.js',
         options: {
           debug:     DEV,
           transform: browserifyTransform
@@ -207,26 +179,10 @@ module.exports = function (grunt) {
     }
   });
 
-  // Update the deploy dependencies list.
-  grunt.registerTask('deploy-bundle-dependencies', function () {
-    var pkg = grunt.file.readJSON(DEPLOY_DIR + '/package.json');
-    pkg.bundledDependencies = require('fs').readdirSync(
-      DEPLOY_DIR + '/node_modules'
-    );
-    grunt.file.write(
-      DEPLOY_DIR + '/package.json', JSON.stringify(pkg, undefined, 2)
-    );
-  });
-
   // Set the notebook test url.
   grunt.registerTask('test-notebook-url', function () {
     process.env.NOTEBOOK_URL = 'http://localhost:' + TEST_PORT;
   });
-
-  // Test the server-side of the application.
-  grunt.registerTask('test-server', [
-    'shell:mocha-server'
-  ]);
 
   // Test the application in a headless browser environment.
   grunt.registerTask('test-browser', [
@@ -235,13 +191,7 @@ module.exports = function (grunt) {
 
   // Test the application in a headless environment.
   grunt.registerTask('test', [
-    'check', 'test-browser', 'test-server'
-  ]);
-
-  // Deploy the application to heroku.
-  grunt.registerTask('deploy', [
-    'clean:deploy', 'shell:build-heroku', 'copy:deploy',
-    'deploy-bundle-dependencies', 'shell:deploy-heroku', 'clean:deploy'
+    'check', 'test-browser'
   ]);
 
   // Generate the built application.
@@ -256,6 +206,6 @@ module.exports = function (grunt) {
 
   // Build the application and watch for file changes.
   grunt.registerTask('default', [
-    'build', 'watch'
+    'build', 'connect:server', 'watch'
   ]);
 };

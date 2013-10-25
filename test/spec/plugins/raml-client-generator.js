@@ -29,7 +29,7 @@ describe('RAML Client Generator Plugin', function () {
     var server;
 
     beforeEach(function (done) {
-      sandbox.execute('API.createClient("example", "' + NOTEBOOK_URL + '/raml/example.yml");', function (err) {
+      sandbox.execute('API.createClient("example", "' + FIXTURES_URL + '/example.raml");', function (err) {
         server = sinon.fakeServer.create();
         return done(err);
       });

@@ -64,7 +64,7 @@ describe('Gist Persistence Plugin', function () {
 
     var state = window.open.lastCall.args[0].match(/state=(\w+)/)[1];
     window.authenticateOAuth2(App.Library.url.resolve(
-      location.href, '/authentication/oauth2.html?code=123&state=' + state
+      location.href, 'authentication/oauth2.html?code=123&state=' + state
     ));
 
     server.respond();

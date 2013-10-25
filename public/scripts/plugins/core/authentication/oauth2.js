@@ -4,7 +4,7 @@ var qs          = require('querystring');
 var url         = require('url');
 var authWindow  = require('./lib/auth-window');
 var redirectUri = url.resolve(
-  global.location.href, '/authentication/oauth2.html'
+  global.location.href, 'authentication/oauth2.html'
 );
 
 /**
@@ -12,7 +12,7 @@ var redirectUri = url.resolve(
  *
  * @type {Array}
  */
-var supportedGrants = ['code', 'token'];
+var supportedGrants = ['token', 'code'];
 
 /**
  * Format error response types to regular strings for displaying the clients.
