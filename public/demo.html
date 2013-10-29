@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>JSNotebook</title>
+  </head>
+  <body style="padding: 1em; background-color: #eee;">
+    <script src="scripts/embed.js"></script>
+    <script>
+      new Notebook(document.body, {
+        style: {
+          margin:   '0 auto',
+          maxWidth: '52em'
+        },
+        inject: [
+          'plugins/proxy.js',
+          'plugins/gist-persistence.js',
+          'plugins/filter-properties.js',
+          'plugins/raml-client-generator.js',
+          'plugins/function-property-filter.js'
+        ],
+        exec: [
+          'proxyPlugin.attach(App.middleware);',
+          'gistPersistencePlugin.attach(App.middleware);',
+          'filterPropertiesPlugin.attach(App.middleware);',
+          'ramlClientGeneratorPlugin.attach(App.middleware);',
+          'functionPropertyFilterPlugin.attach(App.middleware);'
+        ].join('\n')
+      });
+    </script>
+  </body>
+</html>

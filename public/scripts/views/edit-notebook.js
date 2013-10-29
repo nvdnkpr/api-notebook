@@ -25,9 +25,20 @@ EditNotebook.prototype.render = function () {
     viewportMargin: Infinity
   });
 
+  var direction = false;
+
   // Update the persistence code every time we change the content.
   this.listenTo(this.editor, 'change', function (cm) {
+    direction = true;
     persistence.set('contents', cm.getValue());
+  });
+
+  this.listenTo(persistence, 'change:contents', function () {
+    if (!direction) {
+      this.editor.setValue(persistence.get('contents'));
+    }
+
+    direction = false;
   });
 
   return this;
