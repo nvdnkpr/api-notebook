@@ -14,12 +14,6 @@ var ajaxPlugin = function (data, next) {
   // Attach the proxy if the url is not a relative url.
   if (url.protocol && url.host) {
     data.url = PROXY_URL + '/' + data.url;
-
-    // Copy all the keys to be proxied.
-    App._.each(data.headers, function (value, key) {
-      delete data.headers[key];
-      data.headers['X-Proxy-' + key] = value;
-    });
   }
 
   return next();

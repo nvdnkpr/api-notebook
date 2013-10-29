@@ -6,6 +6,7 @@ var stripInput   = require('../lib/codemirror/strip-input');
 var extraKeys    = require('./lib/extra-keys');
 var controls     = require('../lib/controls').code;
 var ownerProtect = require('./lib/owner-protect');
+var messages     = require('../state/messages');
 
 /**
  * Initialize a new code cell view.
@@ -135,6 +136,7 @@ CodeCell.prototype.execute = function (done) {
     // Trigger `execute` and set the result, each of which need an additional
     // flag to indicate whether the the
     this.resultCell.setResult(data, this.notebook.sandbox.window);
+    messages.trigger('resize');
     this.trigger('execute', this, data);
     return done && done(err, data);
   }, this));

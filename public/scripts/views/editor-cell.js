@@ -224,11 +224,11 @@ EditorCell.prototype.bindEditor = function () {
   // Save the value of the model every time a change happens
   this.listenTo(this.editor, 'change', _.bind(function (cm, data) {
     this.save();
+    messages.trigger('resize');
 
     // When the presented data looks line a new line has been added, emit an
     // event the notebook can listen to.
     if (data.text.length > 1 || data.from.line !== data.to.line) {
-      messages.trigger('resize');
       this.trigger('linesChanged', this);
     }
 
