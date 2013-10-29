@@ -173,22 +173,25 @@ InspectorView.prototype._renderChildren = function () {
   var propertyNames = _.keys(_.object(
     Object.getOwnPropertyNames(this.inspect), true
   )).sort(function (a, b) {
+    var aNum = parseInt(a, 10);
+    var bNum = parseInt(b, 10);
+
     // Order two numbers by their values.
-    if (!isNaN(+a) && !isNaN(+b)) {
-      return +a - +b;
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return aNum - bNum;
     }
 
     // Numbers should always come out on top.
-    if (!isNaN(+a)) {
+    if (!isNaN(aNum)) {
       return -1;
     }
 
-    if (!isNaN(+b)) {
+    if (!isNaN(bNum)) {
       return 1;
     }
 
-    // Strings can be sorted like normal.
-    return a > b;
+    // Strings can be sorted like usual.
+    return a > b ? 1 : -1;
   });
 
   _.each(propertyNames, function (prop) {
