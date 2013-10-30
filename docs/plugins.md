@@ -8,6 +8,8 @@ Both `next` and `done` accept up to two arguments, `error` and `data`. If `error
 
 ## Built-in Middleware Events
 
+### Completion
+
 **completion:filter**
 
 Filters completion suggestions from being displayed. If the middleware can process it, pass a boolean result to `done`. Otherwise ignore it and call `next`.
@@ -32,9 +34,13 @@ Inject an array of arguments to be used as completion results.
 
 Describe any variable or property using Tern.js definition notation.
 
+### Inspector
+
 **inspector:filter**
 
 Filter properties from displaying in the inspector. If the middleware can process it, pass a boolean to `done`. Otherwise ignore it and call `next`.
+
+### Result Cells
 
 **result:render**
 
@@ -43,6 +49,8 @@ Render the result or error of a code cell execution. If the middleware can handl
 **result:empty**
 
 Remove the result of a code cell execution. Passes back the data from `result:render`.
+
+### Persistence Layer
 
 **persistence:change**
 
@@ -72,13 +80,33 @@ Load a notebook from somewhere. Gets passed the notebook id and user id and expe
 
 Save a notebook to somewhere. Gets passed all notebook data.
 
+### Ajax
+
 **ajax**
 
 Sends an ajax request that will be responded to with the ajax object. Allows you to intercept ajax requests before they are sent, but you probably won't want to call `done` - otherwise the ajax request will never be sent. Some of the options passed to the ajax method include `timeout`, `method`, `url`, `async`, `headers`, `data` and `beforeSend`.
 
+### OAuth1
+
+**authenticate:oauth1**
+
+Triggers the full OAuth1 authentication flow and returns the tokens, etc.
+
+**ajax:oauth1**
+
+A simple extension of the `ajax` middleware to provide OAuth1 request signing. Provide the OAuth1 configuration object under the `oauth1` property.
+
+### OAuth2
+
 **authenticate:oauth2**
 
-Triggers the full OAuth2 authentication flow. Returns the access token.
+Triggers the full OAuth2 authentication flow and returns the access token, etc.
+
+**ajax:oauth2**
+
+An extension of the `ajax` middleware that provides signing of OAuth2 requests. Provide the OAuth2 configuration object under the `oauth2` property.
+
+### Sandbox Execution
 
 **sandbox:context**
 
@@ -87,3 +115,9 @@ Provides additional context variables for the sandbox. The data object in this c
 **sandbox:execute**
 
 Triggered for code cell execution, it passes through an object with the executing `code`, `context` and `window` environment. That would allow you to intercept code executions and augment with your own code. Like with the `ajax` middleware, calling `done` here will skip execution all together.
+
+### User Interface
+
+**ui:modal**
+
+Open an interactive modal window for displaying html.

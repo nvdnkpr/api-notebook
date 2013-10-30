@@ -5,8 +5,8 @@ var ASYNC_TIMEOUT = 2000;
 /**
  * Set the some additional context variables.
  *
- * @param  {Object}   context
- * @param  {Function} next
+ * @param {Object}   context
+ * @param {Function} next
  */
 var contextPlugin = function (context, next) {
   // Unfortunately it isn't as easy as this since we have lexical scoping issues
@@ -21,8 +21,9 @@ var contextPlugin = function (context, next) {
 /**
  * Sets up the pre-execution plugin.
  *
- * @param  {Object}   window
- * @param  {Function} next
+ * @param {Object}   data
+ * @param {Function} next
+ * @param {Function} done
  */
 var executePlugin = function (data, next, done) {
   /* global App */
@@ -31,6 +32,13 @@ var executePlugin = function (data, next, done) {
   var exec    = {};
   var context = data.context;
   var fallback;
+
+  // Provides additional context under the `console` object. This works in the
+  // same fashion as how Chrome's console is implemented, and has the benefit
+  // of any context variables not wiping out `window` variables (they will
+  // just be shadowed using `with`).
+  data.window.console = data.window.console || {};
+  data.window.console._notebookApi = context;
 
   /**
    * Completed code cell execution and removes left over content.
@@ -41,6 +49,7 @@ var executePlugin = function (data, next, done) {
   var complete = function (err, data) {
     window.clearTimeout(fallback);
     delete App._executeContext;
+    delete data.window.console._notebookApi;
     return done(err, data);
   };
 

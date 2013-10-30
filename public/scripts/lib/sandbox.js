@@ -22,22 +22,14 @@ Sandbox.prototype.execute = function (code, done) {
   var global = this.window;
 
   middleware.trigger('sandbox:context', {}, function (err, context) {
-    // Provides additional context under the `console` object. This works in the
-    // same fashion as how Chrome's console is implemented, and has the benefit
-    // of any context variables not wiping out `window` variables (they will
-    // just be shadowed using `with`).
-    global.console = global.console || {};
-    global.console._notebookApi = context;
-
-    // Allows middleware to hook into the execution event.
+    // Allow middleware to run the execution event. This is the perfect handler
+    // for async execution cells and even allows people to hook into the code
+    // before it runs. Think linters, etc.
     middleware.trigger('sandbox:execute', {
       code:    code,
       context: context,
       window:  global
-    }, function (err, exec) {
-      delete global.console._notebookApi;
-      return done && done(err, exec);
-    });
+    }, done);
   });
 };
 

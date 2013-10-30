@@ -7,6 +7,7 @@ var Notebook     = require('./notebook');
 var EditNotebook = require('./edit-notebook');
 var controls     = require('../lib/controls');
 var messages     = require('../state/messages');
+var middleware   = require('../state/middleware');
 var persistence  = require('../state/persistence');
 
 var ENTER_KEY = 13;
@@ -56,8 +57,7 @@ var App = module.exports = View.extend({
  * @type {Object}
  */
 App.prototype.events = {
-  'click .modal-toggle':   'toggleShortcuts',
-  'click .modal-backdrop': 'hideShortcuts',
+  'click .modal-toggle':   'showShortcuts',
   'click .notebook-exec':  'runNotebook',
   'click .notebook-fork':  'forkNotebook',
   'click .notebook-clone': 'forkNotebook',
@@ -244,25 +244,31 @@ App.prototype.updateState = function () {
  * Shows the shortcut modal.
  */
 App.prototype.showShortcuts = function () {
-  this.el.classList.add('modal-visible');
-};
+  var allControls = controls.editor.concat(controls.code).concat(controls.text);
 
-/**
- * Hides the shortcut modal.
- */
-App.prototype.hideShortcuts = function () {
-  this.el.classList.remove('modal-visible');
-};
-
-/**
- * Toggle the visibility of the shortcut modal window.
- */
-App.prototype.toggleShortcuts = function () {
-  if (this.el.classList.contains('modal-visible')) {
-    this.hideShortcuts();
-  } else {
-    this.showShortcuts();
-  }
+  middleware.trigger('ui:modal', {
+    title: 'Keyboard Shortcuts',
+    content: [
+      '<table class="controls-table">' +
+        '<colgroup>' +
+          '<col class="controls-col-mini">' +
+          '<col class="controls-col-large">' +
+        '</colgroup>' +
+        '<tr>' +
+          '<th>Key Combination</th>' +
+          '<th>Action</th>' +
+        '</tr>' +
+        _.map(allControls, function (control) {
+          return [
+            '<tr>',
+            '<td>' + (control.keyCode || control.shortcut) + '</td>',
+            '<td>' + control.description + '</td>',
+            '</tr>'
+          ].join('\n');
+        }).join('\n') +
+      '</table>'
+    ].join('\n')
+  });
 };
 
 /**
@@ -314,43 +320,11 @@ App.prototype.render = function () {
     '<div class="modal-backdrop"></div>'
   ));
 
-  var allControls = controls.editor.concat(controls.code).concat(controls.text);
-
-  var controlMap = _.map(allControls, function (control) {
-    return '<tr>' +
-      '<td>' + (control.keyCode || control.shortcut) + '</td>' +
-      '<td>' + control.description + '</td>' +
-    '</tr>';
-  });
-
-  this.el.appendChild(domify(
-    '<div class="modal">' +
-      '<header class="modal-header">' +
-        '<h3>Keyboard Shortcuts</h3>' +
-      '</header>' +
-
-      '<div class="modal-body">' +
-        '<table>' +
-          '<colgroup>' +
-            '<col class="col-mini">' +
-            '<col class="col-large">' +
-          '</colgroup>' +
-          '<tr>' +
-            '<th>Key Combination</th>' +
-            '<th>Action</th>' +
-          '</tr>' +
-          controlMap.join('') +
-        '</table>' +
-      '</div>' +
-    '</div>'
-  ));
-
   // Listens to different application state changes and updates accordingly.
   this.listenTo(persistence, 'changeUser',   this.updateUser);
   this.listenTo(persistence, 'change:state', this.updateState);
   this.listenTo(persistence, 'change:id',    this.updateId);
   this.listenTo(persistence, 'change:title', this.updateTitle);
-  this.listenTo(messages,    'keydown:Esc',  this.hideShortcuts);
 
   // Trigger all the update methods.
   this.update();
