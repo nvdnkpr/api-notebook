@@ -1,3 +1,4 @@
+var request     = require('request');
 var DEV         = process.env.NODE_ENV !== 'production';
 var PLUGIN_DIR  = __dirname + '/public/scripts/plugins/addons';
 var BUILD_DIR   = __dirname + '/build';
@@ -18,6 +19,34 @@ var serverMiddleware = function (connect, options) {
 
   // Serve the regular static directory.
   middleware.push(connect.static(options.base));
+
+  middleware.push(function (req, res, next) {
+    if (req.url.substr(0, 7) !== '/proxy/') {
+      return next();
+    }
+
+    var url = req.url.substr(7);
+
+    // Attach the client secret to any Github access token requests.
+    if (/^https?:\/\/github.com\/login\/oauth\/access_token/.test(url)) {
+      url += (url.indexOf('?') > -1 ? '&' : '?');
+      url += 'client_secret=';
+      url += encodeURIComponent(process.env.GITHUB_CLIENT_SECRET);
+    }
+
+    var proxy = request(url);
+
+    // Send the proxy error to the client.
+    proxy.on('error', function (err) {
+      res.writeHead(500);
+      return res.end(err.message);
+    });
+
+    // Pipe the request data directly into the proxy request and back to the
+    // response object. This avoids having to buffer the request body in cases
+    // where they could be unexepectedly large and/or slow.
+    return req.pipe(proxy).pipe(res);
+  });
 
   return middleware;
 };

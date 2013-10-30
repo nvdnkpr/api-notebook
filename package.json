@@ -38,7 +38,8 @@
     "grunt-contrib-connect": "~0.5.0",
     "mocha-phantomjs": "~3.1.2",
     "grunt-newer": "~0.5.0",
-    "grunt-contrib-jshint": "~0.6.4"
+    "grunt-contrib-jshint": "~0.6.4",
+    "request": "~2.27.0"
   },
   "engines": {
     "node": "0.10.21"
